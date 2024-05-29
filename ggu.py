@@ -4,13 +4,17 @@ import os
 import openai
 # Initialize the OpenAI API key
 
-openai_api_key = st.secrets["OPENAI_API_KEY"]
+# Fetch the API key and organization from Streamlit secrets
+try:
+    openai_api_key = st.secrets["openai"]["api_key"]
+    openai_organization = st.secrets["openai"]["organization"]
 
-if not openai_api_key:
-    raise ValueError("OpenAI API key not found in environment variables. Please set 'OPENAI_API_KEY'.")
+    openai.api_key = openai_api_key
+    openai.organization = openai_organization
+except KeyError as e:
+    st.error(f"Key error: {e}. Please set the required keys in the Streamlit secrets.")
+    st.stop()
 
-# Set the API key for OpenAI
-openai.api_key = openai_api_key
     
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
