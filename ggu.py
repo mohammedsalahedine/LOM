@@ -69,7 +69,7 @@ for line in lines:
 
     # Convert dictionary to DataFrame
 amdec_data = pd.DataFrame([data])
-return amdec;dec_data
+        return amdec;dec_data
 
 # Streamlit application starts here
 st.title("FMECA Analysis Tool")
