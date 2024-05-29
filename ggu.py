@@ -62,12 +62,15 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN:
     Recommendations:
     """
+# Example function to use OpenAI API
+def generate_text(prompt):
     try:
-        chat_completion = openai.ChatCompletion.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="gpt-3.5-turbo",
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt=prompt,
+            max_tokens=150
         )
-        response = chat_completion.choices[0].message.content
+        return response.choices[0].text.strip()
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return None
