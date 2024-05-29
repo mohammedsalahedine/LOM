@@ -6,7 +6,7 @@ import openai
 try:
     openai_api_key = st.secrets["openai"]["api_key"]
     openai_organization = st.secrets["openai"]["organization"]
-    openai.api_key = openai_api_name
+    openai.api_key = openai_api_key
     openai.organization = openai_organization
 except KeyError as e:
     st.error(f"Key error: {e}. Please set the required keys in the Streamlit secrets.")
