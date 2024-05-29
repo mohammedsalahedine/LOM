@@ -83,7 +83,7 @@ def parse_amdec_response(text):
 st.title("FMECA Analysis Tool")
 
 if 'all_data' not in st.session_state:
-    st.session_secret.session_state.all_data = pd.DataFrame()
+    st.session_state.all_data = pd.DataFrame()
 
 with st.form("element_form"):
     element = st.text_input("Enter the element")
