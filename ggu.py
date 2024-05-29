@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
+import os
 import openai
 
 # Initialize the OpenAI client using environment variables
-openai.api_key = st.secrets["openai"]["api_key"]
-openai.organization = st.secrets["openai"]["organization"]
+openai.api_key = os.getenv('OPENAI_API_KEY')
+openai.organization = os.getenv('OPENAI_ORGANIZATION')
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
@@ -52,12 +53,11 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN:
     Recommendations:
     """
-    response = openai.Completion.create(
+    chat_completion = client.chat.completions.create(
+        messages=[{"role": "user", "content": prompt}],
         model="gpt-3.5-turbo",
-        prompt=prompt,
-        max_tokens=150  # Adjust max_tokens as needed
     )
-    response_content = response['choices'][0]['text'].strip()
+    response = chat_completion.choices[0].message.content
 
     # Parse response to extract AMDEC-related information
     lines = response_content.split('\n')
@@ -69,7 +69,8 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
 
     # Convert dictionary to DataFrame
     amdec_data = pd.DataFrame([data])
-    return amdec_data  # Corrected return statement
+    return amdec_data
+
 # Streamlit application starts here
 st.title("FMECA Analysis Tool")
 
