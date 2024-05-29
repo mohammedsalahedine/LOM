@@ -3,9 +3,12 @@ import pandas as pd
 import os
 import openai
 
-# Initialize the OpenAI client using environment variables
-openai.api_key = os.getenv('OPENAI_API_KEY')
-openai.organization = os.getenv('OPENAI_ORGANIZATION')
+# Initialize the OpenAI API key
+if 'OPENAI_API_KEY' in os.environ:
+    openai.api_key = os.environ['OPENAI_API_KEY']
+else:
+    st.error("OpenAI API key not found in environment variables. Please set 'OPENAI_API_KEY'.")
+    st.stop()
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
@@ -39,7 +42,7 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN: 48
     Recommendations: Use Backup Systems, Perform frequent start-up tests, Check connections
 
-    You are a HSE engineering working in refinery manufacturer, which include these element Oil pump, give the AMDEC method to analyze potential failure {element}
+    You are a HSE engineering working in refinery manufacturer, which include these element {element}, give the AMDEC method to analyze potential failure
 
     Failure Mode, Function, Effects, Causes, Detection, Severity, Occurrence, Detection,
     Element: {element}
@@ -53,14 +56,18 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN:
     Recommendations:
     """
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model="gpt-3.5-turbo",
-    )
-    response = chat_completion.choices[0].message.content
+    try:
+        chat_completion = openai.ChatCompletion.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="gpt-3.5-turbo",
+        )
+        response = chat_completion.choices[0].message.content
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        return None
 
     # Parse response to extract AMDEC-related information
-    lines = response_content.split('\n')
+    lines = response.split('\n')
     data = {}
     for line in lines:
         if ':' in line:
@@ -92,13 +99,13 @@ with st.form("element_form"):
     if submit_button:
         # Generate AMDEC information for the element
         amdec_data = generate_AMDEC_info(element, detection, severity, occurrence, failure_mode)
+        if amdec_data is not None:
+            # Add the data to the DataFrame in session state using concat
+            st.session_state.all_data = pd.concat([st.session_state.all_data, amdec_data], ignore_index=True)
 
-        # Add the data to the DataFrame in session state using concat
-        st.session_state.all_data = pd.concat([st.session_state.all_data, amdec_data], ignore_index=True)
-
-        # Ensure 'RPN' column is numeric
-        if 'RPN' in st.session_state.all_data.columns:
-            st.session_state.all_data['RPN'] = pd.to_numeric(st.session_state.all_data['RPN'], errors='coerce')
+            # Ensure 'RPN' column is numeric
+            if 'RPN' in st.session_state.all_data.columns:
+                st.session_state.all_data['RPN'] = pd.to_numeric(st.session_state.all_data['RPN'], errors='coerce')
 
 # Function to apply conditional formatting to the DataFrame
 def color_rpns(val):
