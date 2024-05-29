@@ -4,10 +4,13 @@ import os
 import openai
 # Initialize the OpenAI API key
 
-if 'OPENAI_API_KEY' in os.environ:
-    openai.api_key = os.environ['OPENAI_API_KEY']
-else:
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+
+if not openai_api_key:
     raise ValueError("OpenAI API key not found in environment variables. Please set 'OPENAI_API_KEY'.")
+
+# Set the API key for OpenAI
+openai.api_key = openai_api_key
     
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
