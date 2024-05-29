@@ -108,7 +108,7 @@ def color_rpns(val):
         elif val < 8:
             color += 'yellow'
         else:
-        color += 'red'
+            color += 'red'  # Correct indentation added here
     return f'{color}; color: black'
 
 if not st.session_state.all_data.empty:
