@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
 import openai
+import os
+
+# Set the environment variable for the CA bundle
+os.environ['OPENAI_CA_BUNDLE'] = '/etc/ssl/certs/ca-certificates.crt'
 
 # Fetch the API key and organization from Streamlit secrets
 try:
