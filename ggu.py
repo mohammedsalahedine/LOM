@@ -52,11 +52,11 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN:
     Recommendations:
     """
-    response = openai.ChatCompletion.create(
+    response = openai.Chat.Completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
     )
-    response_content = response.choices[0].message['content']
+    response_content =(response.choices[0].message.content)
 
     # Parse response to extract AMDEC-related information
     lines = response_content.split('\n')
