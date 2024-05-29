@@ -1,21 +1,17 @@
 import streamlit as st
 import pandas as pd
-import os
 import openai
-# Initialize the OpenAI API key
 
-# Fetch the API key and organization from Streamlit secrets
+# Initialize the OpenAI API key using Streamlit secrets
 try:
     openai_api_key = st.secrets["openai"]["api_key"]
     openai_organization = st.secrets["openai"]["organization"]
-
-    openai.api_key = openai_api_key
+    openai.api_key = openai_api_name
     openai.organization = openai_organization
 except KeyError as e:
     st.error(f"Key error: {e}. Please set the required keys in the Streamlit secrets.")
     st.stop()
 
-    
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
     Your task is to answer in a consistent style.
@@ -62,77 +58,60 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN:
     Recommendations:
     """
-# Example function to use OpenAI API
-def generate_text(prompt):
     try:
         response = openai.Completion.create(
             engine="davinci",
             prompt=prompt,
             max_tokens=150
         )
-        return response.choices[0].text.strip()
+        generated_text = response.choices[0].text.strip()
+        return parse_amdec_response(generated_text)
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return None
 
-    # Parse response to extract AMDEC-related information
-    lines = response.split('\n')
+def parse_amdec_response(text):
+    lines = text.split('\n')
     data = {}
     for line in lines:
         if ':' in line:
             key, value = line.split(':', 1)
             data[key.strip()] = value.strip()
-
-    # Convert dictionary to DataFrame
-    amdec_data = pd.DataFrame([data])
-    return amdec_data
+    return pd.DataFrame([data])
 
 # Streamlit application starts here
 st.title("FMECA Analysis Tool")
 
-# Check if 'all_data' exists in session state, if not initialize it
 if 'all_data' not in st.session_state:
-    st.session_state.all_data = pd.DataFrame()
+    st.session_secret.session_state.all_data = pd.DataFrame()
 
-# Form to input new elements
 with st.form("element_form"):
     element = st.text_input("Enter the element")
     detection = st.number_input("Enter Detection value", step=1)
     severity = st.number_input("Enter Severity value", step=1)
     occurrence = st.number_input("Enter Occurrence value", step=1)
     failure_mode = st.text_input("Enter Failure Mode")
-    # Create the submit button
     submit_button = st.form_submit_button("Add Element")
 
-    # Check if the submit button is clicked
     if submit_button:
-        # Generate AMDEC information for the element
         amdec_data = generate_AMDEC_info(element, detection, severity, occurrence, failure_mode)
         if amdec_data is not None:
-            # Add the data to the DataFrame in session state using concat
             st.session_state.all_data = pd.concat([st.session_state.all_data, amdec_data], ignore_index=True)
-
-            # Ensure 'RPN' column is numeric
             if 'RPN' in st.session_state.all_data.columns:
                 st.session_state.all_data['RPN'] = pd.to_numeric(st.session_state.all_data['RPN'], errors='coerce')
 
-# Function to apply conditional formatting to the DataFrame
 def color_rpns(val):
-    if not pd.isna(val):
+    color = 'background-color: '
+    if pd.notna(val):
         if val < 4:
-            color = 'background-color: green; color: black'
-        elif val >= 4 and val <= 7:
-            color = 'background-color: yellow; color: black'
+            color += 'green'
+        elif val < 8:
+            color += 'yellow'
         else:
-            color = 'background-color: red; color: black'
-        return color
-    return None
+        color += 'red'
+    return f'{color}; color: black'
 
-# Display the collected AMDEC data with conditional formatting
 if not st.session_state.all_data.empty:
     st.write("Collected AMDEC Information:")
-    # Apply the style to the 'RPN' column
     styled_data = st.session_state.all_data.style.applymap(color_rpns, subset=['RPN'])
-    st.dataframe(styled_data)  # Display the styled DataFrame in the Streamlit app
-
-# Additional Streamlit code can go here for other features and functionalities
+    st.dataframe(styled_data)
