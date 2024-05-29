@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
-import os
 import openai
-# Initialize the OpenAI API key
 
 # Fetch the API key and organization from Streamlit secrets
 try:
@@ -15,7 +13,18 @@ except KeyError as e:
     st.error(f"Key error: {e}. Please set the required keys in the Streamlit secrets.")
     st.stop()
 
-    
+def generate_text(prompt):
+    try:
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt=prompt,
+            max_tokens=150
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        return None
+
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
     Your task is to answer in a consistent style.
@@ -62,21 +71,14 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN:
     Recommendations:
     """
-# Example function to use OpenAI API
-def generate_text(prompt):
-    try:
-        response = openai.Completion.create(
-            engine="davinci",
-            prompt=prompt,
-            max_tokens=150
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+    
+    # Generate text using OpenAI API
+    response_text = generate_text(prompt)
+    if response_text is None:
         return None
-
+    
     # Parse response to extract AMDEC-related information
-    lines = response.split('\n')
+    lines = response_text.split('\n')
     data = {}
     for line in lines:
         if ':' in line:
@@ -134,5 +136,3 @@ if not st.session_state.all_data.empty:
     # Apply the style to the 'RPN' column
     styled_data = st.session_state.all_data.style.applymap(color_rpns, subset=['RPN'])
     st.dataframe(styled_data)  # Display the styled DataFrame in the Streamlit app
-
-# Additional Streamlit code can go here for other features and functionalities
