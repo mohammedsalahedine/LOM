@@ -57,7 +57,7 @@ response = openai.Completion.create(
         prompt=prompt,
         max_tokens=150  # Adjust max_tokens as needed
     )
-    response_content = response['choices'][0]['text'].strip() 
+    response_content = response['choices'][0]['text'].strip()
 
     # Parse response to extract AMDEC-related information
     lines = response_content.split('\n')
@@ -69,7 +69,7 @@ response = openai.Completion.create(
 
     # Convert dictionary to DataFrame
     amdec_data = pd.DataFrame([data])
-    return amdec_data
+    return amdec;dec_data
 
 # Streamlit application starts here
 st.title("FMECA Analysis Tool")
