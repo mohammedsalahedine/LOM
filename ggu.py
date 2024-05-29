@@ -2,14 +2,13 @@ import streamlit as st
 import pandas as pd
 import os
 import openai
-
 # Initialize the OpenAI API key
+
 if 'OPENAI_API_KEY' in os.environ:
     openai.api_key = os.environ['OPENAI_API_KEY']
 else:
-    st.error("OpenAI API key not found in environment variables. Please set 'OPENAI_API_KEY'.")
-    st.stop()
-
+    raise ValueError("OpenAI API key not found in environment variables. Please set 'OPENAI_API_KEY'.")
+    
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
     Your task is to answer in a consistent style.
